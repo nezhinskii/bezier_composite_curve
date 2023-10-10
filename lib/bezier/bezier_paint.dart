@@ -1,8 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:bezier_curves/bezier_bloc/bezier_bloc.dart';
-import 'package:bezier_curves/bezier_point.dart';
+import 'package:bezier_curves/bezier/bezier_bloc/bezier_bloc.dart';
+import 'package:bezier_curves/bezier/bezier_point.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
