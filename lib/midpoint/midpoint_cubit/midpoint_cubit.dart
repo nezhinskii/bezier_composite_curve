@@ -52,7 +52,7 @@ List<List<Offset>> _calculatePoints(
 
   Random random = Random();
 
-  var stack = List.from(pointsBySteps.first);
+  var stack = List.from(pointsBySteps.first)..insert(1, pointsBySteps.first[1]);
 
   while (stack.isNotEmpty) {
     var end = stack.removeLast();
