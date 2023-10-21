@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 import 'dart:ui';
 
@@ -7,19 +8,9 @@ import 'package:flutter/material.dart';
 part 'midpoint_state.dart';
 
 class MidpointCubit extends Cubit<MidpointState> {
-  MidpointCubit({
-    required Offset startOffset,
-    required Offset endOffset,
-    required double roughness,
-    required double minStep,
-    int? step,
-  })  : pointsBySteps =
-            _calculatePoints(startOffset, endOffset, roughness, minStep),
-        super(MidpointDraw(
-            points: _calculatePoints(startOffset, endOffset, roughness, minStep)
-                .last));
+  MidpointCubit() : super(const MidpointDraw(points: []));
 
-  List<List<Offset>> pointsBySteps;
+  List<SplayTreeSet<Offset>> pointsBySteps = [];
 
   void draw(
       Offset startOffset, Offset endOffset, double roughness, double minStep,
@@ -30,52 +21,53 @@ class MidpointCubit extends Cubit<MidpointState> {
     if (step == null) {
       pointsBySteps =
           _calculatePoints(startOffset, endOffset, roughness, minStep);
-      points = pointsBySteps.last;
+      points = pointsBySteps.last.toList();
     } else {
-      points = pointsBySteps[step];
+      points = pointsBySteps[step].toList();
     }
 
     emit(MidpointDraw(points: points));
   }
 }
 
-List<List<Offset>> _calculatePoints(
+List<SplayTreeSet<Offset>> _calculatePoints(
     Offset startOffset, Offset endOffset, double roughness, double minStep) {
+  var maxY = max(endOffset.dy, startOffset.dy);
   var pointsBySteps = [
-    [
+    SplayTreeSet<Offset>.from([
       startOffset,
-      Offset((startOffset + endOffset).dx / 2,
-          startOffset.dy - (endOffset - startOffset).distance / 2),
       endOffset,
-    ]
+    ], (l, r) => l.dx.compareTo(r.dx))
   ];
 
   Random random = Random();
 
-  var stack = List.from(pointsBySteps.first)..insert(1, pointsBySteps.first[1]);
+  var queue = List.from(pointsBySteps.first);
 
-  while (stack.isNotEmpty) {
-    var end = stack.removeLast();
-    var start = stack.removeLast();
+  while (queue.isNotEmpty) {
+    var end = queue.removeLast();
+    var start = queue.removeLast();
 
-    if (end.dx - start.dx < minStep) {
+    var len = end.dx - start.dx;
+    if (len / 2 < minStep) {
       continue;
     }
 
     double midX = (start.dx + end.dx) / 2;
     double midY = (start.dy + end.dy) / 2;
 
-    double displacement = (random.nextDouble() * 2 - 1) * roughness;
+    double displacement = (random.nextDouble() * 2 - 1) * roughness * len / 2;
 
-    var midPoint = Offset(midX, midY + displacement);
+    var midPoint = Offset(midX, max(min(midY + displacement, maxY), 0));
 
-    pointsBySteps.add(List.from(pointsBySteps.last)..add(midPoint));
+    pointsBySteps.add(SplayTreeSet<Offset>.from(
+        pointsBySteps.last, (l, r) => l.dx.compareTo(r.dx))
+      ..add(midPoint));
 
-    stack.add(start);
-    stack.add(midPoint);
-    stack.add(midPoint);
-    stack.add(end);
+    queue.insert(0, end);
+    queue.insert(0, midPoint);
+    queue.insert(0, midPoint);
+    queue.insert(0, start);
   }
-
   return pointsBySteps;
 }
