@@ -1,6 +1,7 @@
 import 'package:bezier_curves/bezier/bezier_bloc/bezier_bloc.dart';
 import 'package:bezier_curves/bezier/bezier_paint.dart';
 import 'package:bezier_curves/bezier/bezier_tab.dart';
+import 'package:bezier_curves/l_system/l_system_tab.dart';
 import 'package:bezier_curves/midpoint/midpoint_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -54,7 +55,7 @@ class HomePage extends StatelessWidget {
             ),
             Expanded(
               child: TabBarView(children: [
-                Center(child: Text("L-системы")),
+                LSystemTab(),
                 MidpointTab(),
                 BezierTab()
               ]),
